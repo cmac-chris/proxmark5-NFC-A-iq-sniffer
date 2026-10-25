@@ -1,0 +1,5 @@
+dist/
+dist_all/
+.vscode/
+.clang-format
+.editorconfig

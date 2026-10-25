@@ -1265,6 +1265,8 @@ int CmdHF14ASniff(const char *Cmd) {
         arg_lit0("c", "card", "triggered by first data from card"),
         arg_lit0("r", "reader", "triggered by first 7-bit request from reader (REQ, WUP)"),
         arg_lit0("i", "interactive", "Console will not be returned until sniff finishes or is aborted"),
+        arg_lit0("d", "dev", "after the sniff, check the trace: PASS / FAIL and an error count (implies -i)"),
+        arg_lit0(NULL, "stock", "PM5: sniff on the FPGA's flash image (106 kbit/s only), not the sniffer image"),
         arg_param_end
     };
     CLIExecWithReturn(ctx, Cmd, argtable, true);
@@ -1279,8 +1281,15 @@ int CmdHF14ASniff(const char *Cmd) {
         param |= 0x02;
     }
 
-    bool interactive = arg_get_lit(ctx, 3);
+    bool dev = arg_get_lit(ctx, 4);
+    bool stock = arg_get_lit(ctx, 5);
+    bool interactive = arg_get_lit(ctx, 3) || dev;
     CLIParserFree(ctx);
+
+    // PM5: the 14a sniffer image (212 / 424 / 848 kbit/s after a PPS)
+    if (stock == false && IfPm5()) {
+        param |= 0x08;
+    }
 
     clearCommandBuffer();
     SendCommandNG(CMD_HF_ISO14443A_SNIFF, (uint8_t *)&param, sizeof(uint8_t));
@@ -1306,6 +1315,9 @@ int CmdHF14ASniff(const char *Cmd) {
         }
 
         PrintAndLogEx(INFO, "Done!");
+        if (dev) {
+            return TraceCheck14aSniff();
+        }
         PrintAndLogEx(HINT, "Hint: Try `" _YELLOW_("hf 14a list")"` to view captured tracelog");
         PrintAndLogEx(HINT, "Hint: Try `" _YELLOW_("trace save -h") "` to save tracelog for later analysing");
     } else {

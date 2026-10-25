@@ -1,0 +1,20 @@
+App(
+    appid="iso14443a_hbr_tester",
+    name="14A HBR Tester",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="hbr_tester_app",
+    requires=["gui", "storage", "notification"],
+    stack_size=4 * 1024,
+    fap_category="NFC",
+    fap_version="1.0",
+    fap_icon="hbr_tester_10px.png",
+    fap_description="Reads ISO 14443-4 cards at 106 / 212 / 424 / 848 kbit/s and shows the full frame trace",
+    fap_author="cmac-chris",
+    sources=[
+        "hbr_tester.c",
+        "hbr_hal.c",
+        "hbr_workload.c",
+        "hbr_trace.c",
+        "hbr_log_view.c",
+    ],
+)

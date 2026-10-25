@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
 
 ## [unreleased][unreleased]
+- Added PM5 `hf 14a sniff` at 212 / 424 / 848 kbit/s: a 14a sniffer FPGA image, loaded into SRAM, follows the PPS (@cmac-chris)
+- Changed `trace list` - trace lengths are 32-bit, so the client reads the PM5's whole trace (about 420 KB), and frames at 212 / 424 / 848 kbit/s no longer get a partial byte mark (@cmac-chris)
 - Fixed client build with `-march=x86-64-v3` (CentOS/RHEL 10 default) - false `-Wstringop-overflow` in the EMV AID list table (@r3wretrhy)
 - Changed `hf seos info` - now prints UID, ATQA, SAK, ATS, MIFARE Classic emulation, which SEOS AIDs answer and the known AIDs found (@antoniovazquezblanco)
 - Fixed `hf seos managekeys -p` - key table columns stay aligned for slots 10 and up (@antoniovazquezblanco)

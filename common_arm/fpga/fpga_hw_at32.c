@@ -259,7 +259,7 @@ static void spi_cmd_setup(void) {
     spi_enable(SPI_CMD, TRUE);
 }
 
-void FpgaSendCommand(uint16_t cmd, uint16_t v) {
+static bool fpga_send_cmd(uint16_t cmd, uint16_t v, bool frame_sync) {
     // Init spi
     spi_cmd_setup();
 
@@ -274,8 +274,32 @@ void FpgaSendCommand(uint16_t cmd, uint16_t v) {
     while (spi_i2s_flag_get(SPI_CMD, SPI_I2S_BF_FLAG) != RESET) {} // Waiting for SPI transmit finish.
     gpio_bits_set(AT32_GPIO_SPI_CS, AT32_GPIO_SPI_CS_PIN); // CS HIGH
 
+    // a frame pulse's end, then ~1 us: the next pulse is ~3.5 us away (4.7 us frames of 16-bit words at 106 kbit/s;
+    // give up after ~100 us each). Turned back on at a random point, 16-bit words could stay out of step
+    bool seen = false;
+    if (frame_sync) {
+        uint32_t i = 0;
+        while (i < 4000 && Gpio_SSC_FRAME_Read() == false) {
+            i++;
+        }
+        while (i < 8000 && Gpio_SSC_FRAME_Read()) {
+            i++;
+        }
+        seen = (i < 8000);
+        for (volatile uint32_t k = 0; k < 64; k++) {}
+    }
+
     // Re-enable SPI_SSC after sending the command
     SPI_SSC->ctrl1_bit.spien = TRUE;
+    return seen;
+}
+
+void FpgaSendCommand(uint16_t cmd, uint16_t v) {
+    fpga_send_cmd(cmd, v, false);
+}
+
+bool FpgaSendCommandFrameSync(uint16_t cmd, uint16_t v) {
+    return fpga_send_cmd(cmd, v, true);
 }
 
 void Fpga_print_status(void) {
